@@ -39,24 +39,13 @@ jobs:
         env:
           BASE_URL: https://practicesoftwaretesting.com
 
-      - name: Reset reports before the canonical clean run
-        run: rm -rf allure-results blob-report
-
       - name: Sanity — CLEAN must match its own baselines (no false positives)
         run: npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
         env:
           BASE_URL: https://practicesoftwaretesting.com
 
-      - name: Upload this shard's Allure results (healthy suite → dashboard)
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-results-${{ matrix.shardIndex }}
-          path: allure-results/
-          retention-days: 1
-
-      - name: Reset blob report so the native report shows only the regressions
-        run: rm -rf blob-report
+      - name: Reset reports so both reports capture the with-bugs run
+        run: rm -rf allure-results blob-report
 
       - name: Detect regressions in the WITH-BUGS build (diffs expected)
         id: regression
@@ -64,6 +53,14 @@ jobs:
         run: npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
         env:
           BASE_URL: https://with-bugs.practicesoftwaretesting.com
+
+      - name: Upload this shard's Allure results (real visual-diff failures → dashboard)
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-${{ matrix.shardIndex }}
+          path: allure-results/
+          retention-days: 1
 
       - name: Assert this shard caught its regressions
         run: |

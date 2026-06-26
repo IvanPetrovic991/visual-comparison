@@ -88,9 +88,9 @@ Every failure ships with the full diff, the stabilization call-log, and the sour
 | Report | Best for | Where |
 | --- | --- | --- |
 | **Playwright HTML** (native) | the **visual diffs** — Expected / Actual / Diff slider per failure | `playwright-report` CI artifact, merged from every shard |
-| **Allure dashboard** | suite **health, history & flakiness trends** over time | 🔗 **[live on GitHub Pages](https://ivanpetrovic.dev/visual-comparison/)** |
+| **Allure dashboard** | the **caught regressions** — image-diff slider + failure reason, plus history & trends | 🔗 **[live on GitHub Pages](https://ivanpetrovic.dev/visual-comparison/)** |
 
-The native Playwright report keeps the best diff experience, so it stays primary. **Allure** runs as a *secondary* reporter and is published from CI on every run with trend history — a hosted, always-fresh dashboard you can link from a CV.
+Both report on the **with-bugs run**, so the failures are real. The native Playwright report stays primary for its per-failure diff slider, while **Allure** runs as a *secondary* reporter — a hosted dashboard where every failed test carries its **interactive image diff (Expected / Actual / Diff)** and the exact reason it failed, with history & trends across runs.
 
 <div align="center">
 <a href="https://ivanpetrovic.dev/visual-comparison/"><img src="docs/images/allure-overview.png" width="820" alt="Allure dashboard — 100% passing, history trend, per-project breakdown"/></a>
@@ -281,7 +281,7 @@ Routing note: the with-bugs deployment uses **hash routing** and 404s on deep li
 
 1. **Shard** the suite across a 4-way matrix (one runner each).
 2. Each shard **records** baselines from the clean build, **sanity-checks** the clean build against them (no false positives), then **compares** the with-bugs build and **asserts** the diffs were caught.
-3. Each shard uploads a `blob` report (the with-bugs run) and its **Allure results** (the clean run).
+3. Each shard uploads a `blob` report and its **Allure results** — both from the with-bugs run, so the failures and image diffs show up in both reports.
 4. A **merge** job stitches the blobs into one native HTML report (with all diffs); an **Allure** job builds the dashboard with history and publishes it to GitHub Pages.
 
 📊 **Live Allure dashboard:** **https://ivanpetrovic.dev/visual-comparison/**
