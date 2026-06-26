@@ -1,0 +1,1 @@
+A snapshot doesn't exist at /__w/visual-comparison/visual-comparison/tests/visual/__screenshots__/registry.visual.spec.ts/search-pliers-desktop-chromium-linux.png, writing actual.
