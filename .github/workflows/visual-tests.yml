@@ -35,10 +35,24 @@ jobs:
         env:
           BASE_URL: https://practicesoftwaretesting.com
 
+      - name: Reset reports before the canonical clean run
+        run: rm -rf allure-results blob-report
+
       - name: Sanity — CLEAN must match its own baselines (no false positives)
         run: npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
         env:
           BASE_URL: https://practicesoftwaretesting.com
+
+      - name: Upload this shard's Allure results (healthy suite → dashboard)
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-${{ matrix.shardIndex }}
+          path: allure-results/
+          retention-days: 1
+
+      - name: Reset blob report so the native report shows only the regressions
+        run: rm -rf blob-report
 
       - name: Detect regressions in the WITH-BUGS build (diffs expected)
         id: regression
@@ -63,9 +77,9 @@ jobs:
           path: blob-report/
           retention-days: 1
 
-  # ── Stitch every shard's blob report into ONE HTML report (with diffs) ──
+  # ── Stitch every shard's blob report into ONE native HTML report (with diffs) ──
   merge:
-    name: Merge reports
+    name: Merge native report
     if: ${{ !cancelled() }}
     needs: [visual]
     runs-on: ubuntu-latest
@@ -98,3 +112,44 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 14
+
+  # ── Build the Allure dashboard (with history) and publish it to GitHub Pages ──
+  allure:
+    name: Allure report → GitHub Pages
+    if: ${{ !cancelled() }}
+    needs: [visual]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Allure results from all shards
+        uses: actions/download-artifact@v4
+        with:
+          path: allure-results
+          pattern: allure-results-*
+          merge-multiple: true
+
+      - name: Load previous Allure history from gh-pages
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Generate Allure report (keeping history/trends)
+        uses: simple-elf/allure-report-action@v1.14
+        with:
+          allure_results: allure-results
+          gh_pages: gh-pages
+          allure_history: allure-history
+          keep_reports: 30
+
+      - name: Publish to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-history

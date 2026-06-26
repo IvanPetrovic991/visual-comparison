@@ -30,9 +30,21 @@ export default defineConfig({
   // Update intentionally with `npm run baseline` / `npm run baseline:changed`.
   updateSnapshots: IS_CI ? 'none' : 'missing',
 
-  // `blob` is the only mergeable reporter — required to stitch sharded CI runs
-  // (including the visual diffs) into one HTML report. HTML + list locally.
-  reporter: IS_CI ? [['blob']] : [['html', { open: 'never' }], ['list']],
+  // Reporters:
+  //  - `blob`  → mergeable across shards into the native HTML report (best diff UX).
+  //  - `allure-playwright` → SECONDARY: trends/history dashboard, published to
+  //    GitHub Pages from CI. The native report stays primary for visual diffs.
+  //  - `html`/`list` locally for instant feedback.
+  reporter: IS_CI
+    ? [
+        ['blob'],
+        ['allure-playwright', { resultsDir: 'allure-results', detail: true, suiteTitle: false }],
+      ]
+    : [
+        ['html', { open: 'never' }],
+        ['list'],
+        ['allure-playwright', { resultsDir: 'allure-results', detail: true, suiteTitle: false }],
+      ],
 
   /** Defaults for every visual assertion — tune the whole suite from one place. */
   expect: {

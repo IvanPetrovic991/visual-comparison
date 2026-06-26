@@ -9,6 +9,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Node](https://img.shields.io/badge/Node-%3E%3D20-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Allure Dashboard](https://img.shields.io/badge/Allure-dashboard-ff6b6b)](https://ivanpetrovic.dev/visual-comparison/)
 
 Pixel-perfect UI regression testing that **catches the layout and styling breakage functional tests walk straight past** — and proves it by diffing a clean build against an intentionally broken one. Built to scale to **1000+ snapshots** with a data-driven registry, custom fixtures, tagging and sharded CI.
 
@@ -82,6 +83,17 @@ Every failure ships with the full diff, the stabilization call-log, and the sour
 
 ---
 
+## 📊 Two reports, two purposes
+
+| Report | Best for | Where |
+| --- | --- | --- |
+| **Playwright HTML** (native) | the **visual diffs** — Expected / Actual / Diff slider per failure | `playwright-report` CI artifact, merged from every shard |
+| **Allure dashboard** | suite **health, history & flakiness trends** over time | 🔗 **[live on GitHub Pages](https://ivanpetrovic.dev/visual-comparison/)** |
+
+The native Playwright report keeps the best diff experience, so it stays primary. **Allure** runs as a *secondary* reporter and is published from CI on every run with trend history — a hosted, always-fresh dashboard you can link from a CV.
+
+---
+
 ## 🧰 Tech stack
 
 - **[Playwright Test](https://playwright.dev/)** `1.61` — built-in `toHaveScreenshot()` pixel comparison, **no external SaaS** (Percy/Applitools not required).
@@ -89,6 +101,7 @@ Every failure ships with the full diff, the stabilization call-log, and the sour
 - **Cross-browser & responsive** — Chromium, Firefox, WebKit on desktop, plus tablet and mobile viewports.
 - **Docker** — the official Playwright image guarantees identical rendering locally and in CI.
 - **GitHub Actions** — sharded matrix + blob reporter + `merge-reports` for one combined HTML report.
+- **[Allure](https://allurereport.org/)** — a secondary reporter feeding a hosted [trends dashboard](https://ivanpetrovic.dev/visual-comparison/) (history, flakiness) published to GitHub Pages.
 
 ---
 
@@ -230,6 +243,7 @@ npm run docker:bugs       # catch the regressions in the with-bugs build
 | `npm run test:ci` | Chromium desktop + mobile only (fast subset) |
 | `npm run report` | Open the HTML report with diff images |
 | `npm run merge-report` | Merge sharded `blob` reports into one HTML report |
+| `npm run allure` | Generate & open the Allure report locally (needs a Java runtime) |
 | `npm run typecheck` | Type-check the suite with `tsc` |
 | `npm run docker:*` | The same flows inside the pinned Playwright Docker image |
 
@@ -262,7 +276,10 @@ Routing note: the with-bugs deployment uses **hash routing** and 404s on deep li
 
 1. **Shard** the suite across a 4-way matrix (one runner each).
 2. Each shard **records** baselines from the clean build, **sanity-checks** the clean build against them (no false positives), then **compares** the with-bugs build and **asserts** the diffs were caught.
-3. Each shard uploads a `blob` report; a final **merge** job stitches them into one HTML report (with all side-by-side diffs) and uploads it as an artifact.
+3. Each shard uploads a `blob` report (the with-bugs run) and its **Allure results** (the clean run).
+4. A **merge** job stitches the blobs into one native HTML report (with all diffs); an **Allure** job builds the dashboard with history and publishes it to GitHub Pages.
+
+📊 **Live Allure dashboard:** **https://ivanpetrovic.dev/visual-comparison/**
 
 Download the `playwright-report` artifact from any run to browse the caught regressions visually.
 
