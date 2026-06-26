@@ -1,0 +1,28 @@
+{
+  "name": "visual-comparison",
+  "version": "1.0.0",
+  "description": "Visual regression testing suite for the Practice Software Testing 'Toolshop' app — Playwright + TypeScript. Demonstrates automated detection of UI regressions by diffing a clean build against an intentionally buggy build.",
+  "type": "commonjs",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "playwright test",
+    "test:ci": "playwright test --project=desktop-chromium --project=mobile-chromium",
+    "test:bugs": "cross-env BASE_URL=https://with-bugs.practicesoftwaretesting.com playwright test",
+    "baseline": "playwright test --update-snapshots",
+    "baseline:ci": "playwright test --update-snapshots --project=desktop-chromium --project=mobile-chromium",
+    "report": "playwright show-report",
+    "typecheck": "tsc --noEmit",
+    "docker:baseline": "docker compose run --rm visual npm run baseline",
+    "docker:test": "docker compose run --rm visual npm test",
+    "docker:bugs": "docker compose run --rm -e BASE_URL=https://with-bugs.practicesoftwaretesting.com visual npm test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.1",
+    "@types/node": "26.0.1",
+    "cross-env": "^7.0.3",
+    "typescript": "6.0.3"
+  }
+}

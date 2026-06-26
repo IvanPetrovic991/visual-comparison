@@ -1,0 +1,12 @@
+services:
+  visual:
+    build: .
+    image: visual-comparison
+    working_dir: /app
+    environment:
+      BASE_URL: ${BASE_URL:-https://practicesoftwaretesting.com}
+    volumes:
+      # Mount the repo so freshly recorded baselines land back on the host,
+      # while keeping the container's own installed node_modules.
+      - .:/app
+      - /app/node_modules
