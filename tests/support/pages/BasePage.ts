@@ -23,16 +23,16 @@ export abstract class BasePage {
   }
 
   /**
-   * Reach a page by clicking through the app's own navigation from the home
-   * page. Use this instead of `open()` for routes that a deep-link `goto()`
-   * can't reach — e.g. the with-bugs deployment uses hash routing, so direct
-   * navigation to `/contact` returns a server 404. Going through the UI works
-   * on every deployment and exercises the real client-side router.
+   * Reach a page by clicking through the app's own navigation from home. Use
+   * this instead of `open()` for routes a deep-link `goto()` can't reach — e.g.
+   * the with-bugs deployment uses hash routing, so direct navigation to
+   * `/contact` returns a server 404. Going through the UI works on every
+   * deployment and exercises the real client-side router.
    */
   protected async openViaNav(navTestId: string): Promise<void> {
     await this.page.goto('/', { waitUntil: 'domcontentloaded' });
     await dismissOverlays(this.page);
-    await this.page.locator('[data-test="product-name"]').first().waitFor({ state: 'visible' });
+    await this.page.getByTestId('product-name').first().waitFor({ state: 'visible' });
 
     // On narrow viewports the nav links are hidden behind a hamburger toggle.
     const toggler = this.page.locator('.navbar-toggler').first();
@@ -40,7 +40,7 @@ export abstract class BasePage {
       await toggler.click();
     }
 
-    await this.page.locator(navTestId).click();
+    await this.page.getByTestId(navTestId).click();
     await this.ready();
     await stabilize(this.page);
   }

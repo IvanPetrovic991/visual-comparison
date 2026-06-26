@@ -1,0 +1,27 @@
+/*
+ * Injected by Playwright via `expect.toHaveScreenshot.stylePath` right before
+ * every screenshot is taken (and during its stability re-captures). One shared
+ * stylesheet stabilizes the whole 1000+ test suite instead of per-test masks.
+ */
+
+/* Freeze animations, transitions, smooth scrolling and the blinking caret. */
+*,
+*::before,
+*::after {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
+  caret-color: transparent !important;
+}
+
+/*
+ * Hide the live-chat widget: it polls continuously and animates inside a
+ * cross-origin iframe, so it would otherwise make screenshots flaky.
+ */
+.chat-widget,
+[class*="chat-widget"],
+[id*="chat-widget"] {
+  display: none !important;
+}

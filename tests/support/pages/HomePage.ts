@@ -5,9 +5,9 @@ import { stabilize } from '../stabilize';
 export class HomePage extends BasePage {
   readonly path = '/';
 
-  readonly productCards: Locator = this.page.locator('[data-test="product-name"]');
-  readonly searchInput: Locator = this.page.locator('[data-test="search-query"]');
-  readonly searchSubmit: Locator = this.page.locator('[data-test="search-submit"]');
+  readonly productCards: Locator = this.page.getByTestId('product-name');
+  readonly searchInput: Locator = this.page.getByTestId('search-query');
+  readonly searchSubmit: Locator = this.page.getByTestId('search-submit');
 
   async ready(): Promise<void> {
     await this.productCards.first().waitFor({ state: 'visible' });

@@ -29,26 +29,10 @@ export async function dismissOverlays(page: Page): Promise<void> {
  *  - settle the network
  */
 export async function stabilize(page: Page): Promise<void> {
-  await page.addStyleTag({
-    content: `
-      *, *::before, *::after {
-        animation-duration: 0s !important;
-        animation-delay: 0s !important;
-        transition-duration: 0s !important;
-        transition-delay: 0s !important;
-        scroll-behavior: auto !important;
-        caret-color: transparent !important;
-      }
-      /* Hide the live-chat widget: it polls forever (so the network never goes
-         idle) and animates inside a cross-origin iframe we can't freeze — both
-         would make screenshots flaky. */
-      .chat-widget,
-      [class*="chat-widget"],
-      [id*="chat-widget"] {
-        display: none !important;
-      }
-    `,
-  });
+  // NB: animation-freezing and chat-widget hiding now live in
+  // tests/support/visual-stabilize.css, applied by Playwright at capture time
+  // via expect.toHaveScreenshot.stylePath. Here we only handle runtime concerns
+  // that a stylesheet can't: fonts, lazy images and overlays.
 
   // Wait for web fonts (resolve to nothing serializable).
   await page.evaluate(() => document.fonts.ready.then(() => undefined));

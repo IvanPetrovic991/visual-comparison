@@ -5,12 +5,12 @@ import { stabilize } from '../stabilize';
 export class ContactPage extends BasePage {
   readonly path = '/contact';
 
-  readonly firstName: Locator = this.page.locator('[data-test="first-name"]');
-  readonly lastName: Locator = this.page.locator('[data-test="last-name"]');
-  readonly email: Locator = this.page.locator('[data-test="email"]');
-  readonly subject: Locator = this.page.locator('[data-test="subject"]');
-  readonly message: Locator = this.page.locator('[data-test="message"]');
-  readonly submit: Locator = this.page.locator('[data-test="contact-submit"]');
+  readonly firstName: Locator = this.page.getByTestId('first-name');
+  readonly lastName: Locator = this.page.getByTestId('last-name');
+  readonly email: Locator = this.page.getByTestId('email');
+  readonly subject: Locator = this.page.getByTestId('subject');
+  readonly message: Locator = this.page.getByTestId('message');
+  readonly submit: Locator = this.page.getByTestId('contact-submit');
 
   async ready(): Promise<void> {
     await this.firstName.waitFor({ state: 'visible' });
@@ -18,7 +18,7 @@ export class ContactPage extends BasePage {
 
   /** Reach Contact via the navbar so it works on hash-routed deployments too. */
   async open(): Promise<this> {
-    await this.openViaNav('[data-test="nav-contact"]');
+    await this.openViaNav('nav-contact');
     return this;
   }
 

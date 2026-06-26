@@ -10,9 +10,9 @@ import { stabilize } from '../stabilize';
 export class ProductDetailPage extends BasePage {
   readonly path = '/product';
 
-  readonly title: Locator = this.page.locator('[data-test="product-name"]');
-  readonly price: Locator = this.page.locator('[data-test="unit-price"]');
-  readonly addToCart: Locator = this.page.locator('[data-test="add-to-cart"]');
+  readonly title: Locator = this.page.getByTestId('product-name');
+  readonly price: Locator = this.page.getByTestId('unit-price');
+  readonly addToCart: Locator = this.page.getByTestId('add-to-cart');
 
   async ready(): Promise<void> {
     await this.title.waitFor({ state: 'visible' });
