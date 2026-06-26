@@ -18,6 +18,10 @@ jobs:
     # is byte-for-byte identical to `npm run docker:*` locally.
     container:
       image: mcr.microsoft.com/playwright:v1.61.1-noble
+    # Firefox refuses to launch when $HOME (set to /github/home by the runner)
+    # isn't owned by the running user. Point it at the container root's home.
+    env:
+      HOME: /root
     strategy:
       fail-fast: false
       matrix:
