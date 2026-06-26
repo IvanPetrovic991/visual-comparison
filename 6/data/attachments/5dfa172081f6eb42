@@ -1,0 +1,126 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: registry.visual.spec.ts >> auth >> login-form
+- Location: tests/visual/registry.visual.spec.ts:11:9
+
+# Error details
+
+```
+Test timeout of 60000ms exceeded.
+```
+
+```
+Error: locator.waitFor: Test timeout of 60000ms exceeded.
+Call log:
+  - waiting for getByTestId('product-name').first() to be visible
+
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - text: View the
+    - link "Documentation" [ref=e4] [cursor=pointer]:
+      - /url: https://testsmith-io.github.io/practice-software-testing/#/
+    - text: for this application.
+  - generic [ref=e5]:
+    - generic [ref=e7]:
+      - generic [ref=e8]: 🐛 Bug Hunting Mode - Find & Report Bugs!
+      - button "Bug Hunting Guide" [ref=e9] [cursor=pointer]
+    - navigation [ref=e10]:
+      - generic [ref=e11]:
+        - link "Practice Software Testing - Toolshop" [ref=e12] [cursor=pointer]:
+          - /url: /
+          - img [ref=e13]
+        - button "Toggle navigation" [ref=e14] [cursor=pointer]
+  - generic [ref=e17]:
+    - generic [ref=e18]:
+      - paragraph [ref=e19]:
+        - img [ref=e20]
+      - separator [ref=e21]
+    - generic [ref=e22]:
+      - text:   
+      - generic [ref=e23]:
+        - button " Filters" [ref=e24] [cursor=pointer]:
+          - generic [ref=e25]: 
+          - text: Filters
+        - generic:
+          - generic:
+            - generic:
+              - navigation "Pagination"
+  - paragraph [ref=e28]:
+    - text: This is a DEMO application (
+    - link "GitHub repo" [ref=e29] [cursor=pointer]:
+      - /url: https://github.com/testsmith-io/practice-software-testing
+    - text: ), used for software testing training purpose. | Banner photo by
+    - link "Barn Images" [ref=e30] [cursor=pointer]:
+      - /url: https://unsplash.com/@barnimages
+    - text: "on"
+    - link "Unsplash" [ref=e31] [cursor=pointer]:
+      - /url: https://unsplash.com/photos/t5YUoHW6zRo
+    - text: .
+  - button "Open chat" [ref=e33] [cursor=pointer]:
+    - img [ref=e34]
+```
+
+# Test source
+
+```ts
+  1  | import type { Page } from '@playwright/test';
+  2  | import { dismissOverlays, stabilize } from '../stabilize';
+  3  | 
+  4  | /**
+  5  |  * Shared navigation + stabilization for every page object.
+  6  |  * Subclasses declare their `path` and how to detect that the page is `ready()`.
+  7  |  */
+  8  | export abstract class BasePage {
+  9  |   abstract readonly path: string;
+  10 | 
+  11 |   constructor(protected readonly page: Page) {}
+  12 | 
+  13 |   /** Resolve once the page's key content is present. */
+  14 |   abstract ready(): Promise<void>;
+  15 | 
+  16 |   /** Navigate, clear overlays, wait for content, and stabilize for snapshotting. */
+  17 |   async open(): Promise<this> {
+  18 |     await this.page.goto(this.path, { waitUntil: 'domcontentloaded' });
+  19 |     await dismissOverlays(this.page);
+  20 |     await this.ready();
+  21 |     await stabilize(this.page);
+  22 |     return this;
+  23 |   }
+  24 | 
+  25 |   /**
+  26 |    * Reach a page by clicking through the app's own navigation from home. Use
+  27 |    * this instead of `open()` for routes a deep-link `goto()` can't reach — e.g.
+  28 |    * the with-bugs deployment uses hash routing, so direct navigation to
+  29 |    * `/contact` returns a server 404. Going through the UI works on every
+  30 |    * deployment and exercises the real client-side router.
+  31 |    */
+  32 |   protected async openViaNav(navTestId: string): Promise<void> {
+  33 |     await this.page.goto('/', { waitUntil: 'domcontentloaded' });
+  34 |     await dismissOverlays(this.page);
+> 35 |     await this.page.getByTestId('product-name').first().waitFor({ state: 'visible' });
+     |                                                         ^ Error: locator.waitFor: Test timeout of 60000ms exceeded.
+  36 | 
+  37 |     // On narrow viewports the nav links are hidden behind a hamburger toggle.
+  38 |     const toggler = this.page.locator('.navbar-toggler').first();
+  39 |     if (await toggler.isVisible().catch(() => false)) {
+  40 |       await toggler.click();
+  41 |     }
+  42 | 
+  43 |     await this.page.getByTestId(navTestId).click();
+  44 |     await this.ready();
+  45 |     await stabilize(this.page);
+  46 |   }
+  47 | }
+  48 | 
+```
