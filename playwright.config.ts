@@ -39,6 +39,9 @@ export default defineConfig({
     ? [
         ['blob'],
         ['allure-playwright', { resultsDir: 'allure-results', detail: true, suiteTitle: false }],
+        // Machine-readable summary so CI can assert every with-bugs failure is a
+        // real screenshot diff (not a timeout / outage) — see scripts/assert-visual-failures.mjs.
+        ['json', { outputFile: 'results.json' }],
       ]
     : [
         ['html', { open: 'never' }],
@@ -60,6 +63,11 @@ export default defineConfig({
       // fails on any real change. Scales sanely from component to full-page shots.
       threshold: 0.2,
       maxDiffPixelRatio: 0.01,
+      // Absolute cap on top of the ratio. Playwright fails on whichever limit is
+      // stricter, so this stops a full-page shot (~2.6M px) from hiding a small
+      // real regression (a recolored button / wrong price is only ~hundreds of px,
+      // far below the ratio's ~26k budget).
+      maxDiffPixels: 1000,
     },
   },
 

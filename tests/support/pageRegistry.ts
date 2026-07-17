@@ -1,3 +1,4 @@
+import type { Locator } from '@playwright/test';
 import type { VisualFixtures } from './fixtures';
 
 export interface VisualCase {
@@ -13,6 +14,12 @@ export interface VisualCase {
   fullPage?: boolean;
   /** Drive the app into the exact state to snapshot. */
   run: (fixtures: VisualFixtures) => Promise<void>;
+  /**
+   * Regions to mask out (rendered as solid boxes) — for data-volatile content
+   * like prices or stock badges that come from the live catalog and would
+   * otherwise diff on every reseed.
+   */
+  mask?: (fixtures: VisualFixtures) => Locator[];
 }
 
 /**
@@ -48,9 +55,13 @@ export const visualCases: VisualCase[] = [
     tags: ['@visual'],
     run: async ({ homePage, productPage }) => {
       await homePage.open();
-      await homePage.openFirstProduct();
+      // Pin to a known product so a catalog reseed can't swap the page under us.
+      await homePage.openProductByName('Combination Pliers');
       await productPage.waitUntilLoaded();
     },
+    // Price is data-driven; mask it so the snapshot fails on layout/colour bugs,
+    // not on a catalog price change.
+    mask: ({ productPage }) => [productPage.price],
   },
   {
     category: 'contact',

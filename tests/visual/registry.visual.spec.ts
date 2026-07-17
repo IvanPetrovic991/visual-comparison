@@ -19,10 +19,12 @@ for (const visualCase of visualCases) {
           );
         }
 
-        await visualCase.run({ page, homePage, productPage, contactPage, loginPage });
+        const fixtures = { page, homePage, productPage, contactPage, loginPage };
+        await visualCase.run(fixtures);
 
         await expect(page).toHaveScreenshot(`${visualCase.name}.png`, {
           fullPage: visualCase.fullPage ?? true,
+          mask: visualCase.mask?.(fixtures) ?? [],
         });
       },
     );

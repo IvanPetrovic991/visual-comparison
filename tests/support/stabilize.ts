@@ -48,17 +48,22 @@ export async function stabilize(page: Page): Promise<void> {
     window.scrollTo(0, 0);
   });
 
-  // Wait until every <img> has actually decoded (bounded — never block forever).
+  // Wait until every <img> has SETTLED — loaded OR errored. A broken image
+  // (404: complete === true but naturalWidth === 0) still counts as settled, so
+  // this can't burn the full timeout on the with-bugs build, which ships
+  // deliberately broken images (the old `naturalWidth > 0` predicate never went
+  // true for those and ate the whole wait). Bounded and best-effort: a genuinely
+  // stuck request just falls through after 5s.
+  //
+  // NB: do NOT `img.decode()` here — decode() waits for load, so a hanging image
+  // request would never resolve and would hang the whole test to its timeout.
   await page
-    .waitForFunction(
-      () => Array.from(document.images).every((img) => img.complete && img.naturalWidth > 0),
-      undefined,
-      { timeout: 10_000 },
-    )
+    .waitForFunction(() => Array.from(document.images).every((img) => img.complete), undefined, {
+      timeout: 5_000,
+    })
     .catch(() => undefined);
 
   // NB: we deliberately do NOT wait for 'networkidle' — this app keeps a chat
-  // poll open, so the network is never idle. A brief settle is enough once
-  // fonts and images are in.
-  await page.waitForTimeout(300);
+  // poll open, so the network is never idle. No fixed settle sleep either:
+  // toHaveScreenshot re-captures until two consecutive frames are identical.
 }
