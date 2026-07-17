@@ -1,0 +1,329 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: registry.visual.spec.ts >> catalog >> search-pliers
+- Location: tests/visual/registry.visual.spec.ts:11:9
+
+# Error details
+
+```
+Test timeout of 60000ms exceeded.
+```
+
+```
+Error: page.waitForResponse: Test timeout of 60000ms exceeded.
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - text: View the
+    - link "Documentation" [ref=e4]:
+      - /url: https://testsmith-io.github.io/practice-software-testing/#/
+    - text: for this application.
+  - generic [ref=e5]:
+    - generic [ref=e7]:
+      - generic [ref=e8]: Practice Black Box Testing & Bug Hunting
+      - button "Testing Guide" [ref=e9] [cursor=pointer]
+      - button "🐛 Bug Hunting" [ref=e10] [cursor=pointer]
+    - navigation [ref=e11]:
+      - generic [ref=e12]:
+        - link "Practice Software Testing - Toolshop" [ref=e13]:
+          - /url: /
+          - img [ref=e14]
+        - generic [ref=e32]:
+          - menubar "Main menu" [ref=e33]:
+            - menuitem "Home" [ref=e34]:
+              - link "Home" [ref=e35]:
+                - /url: /
+            - menuitem "Categories" [ref=e36]:
+              - button "Categories" [ref=e37] [cursor=pointer]
+            - menuitem "Contact" [ref=e38]:
+              - link "Contact" [ref=e39]:
+                - /url: /contact
+            - menuitem "Sign in" [ref=e40]:
+              - link "Sign in" [ref=e41]:
+                - /url: /auth/login
+          - button "Select language" [ref=e43] [cursor=pointer]:
+            - img [ref=e45]
+            - text: EN
+  - generic [ref=e48]:
+    - generic [ref=e49]:
+      - paragraph [ref=e50]:
+        - img "Banner" [ref=e51]
+      - separator [ref=e52]
+    - generic [ref=e53]:
+      - generic [ref=e54]:
+        - heading "Sort" [level=4] [ref=e55]:
+          - img [ref=e57]
+          - text: Sort
+        - separator [ref=e59]
+        - combobox "sort" [ref=e62]:
+          - option [selected]
+          - option "Name (A - Z)"
+          - option "Name (Z - A)"
+          - option "Price (High - Low)"
+          - option "Price (Low - High)"
+          - option "CO₂ Rating (A - E)"
+          - option "CO₂ Rating (E - A)"
+        - heading "Price Range" [level=4] [ref=e63]:
+          - img [ref=e65]
+          - text: Price Range
+        - separator [ref=e67]
+        - generic "ngx-slider" [ref=e69]:
+          - slider "ngx-slider" [ref=e74] [cursor=pointer]
+          - slider "ngx-slider-max" [ref=e75] [cursor=pointer]
+          - generic [ref=e76]: "0"
+          - generic [ref=e77]: "200"
+          - generic [ref=e78]: "1"
+          - generic [ref=e79]: "100"
+        - heading "Search" [level=4] [ref=e81]:
+          - img [ref=e83]
+          - text: Search
+        - separator [ref=e85]
+        - generic [ref=e87]:
+          - generic [ref=e88]: Search
+          - textbox "Search" [ref=e89]
+          - button "X" [ref=e90] [cursor=pointer]
+          - button "Search" [active] [ref=e91] [cursor=pointer]
+        - heading "Filters" [level=4] [ref=e92]:
+          - img [ref=e94]
+          - text: Filters
+        - separator [ref=e96]
+        - heading "By category:" [level=4] [ref=e97]
+        - group "Categories" [ref=e98]:
+          - generic [ref=e99]: Categories
+          - generic [ref=e100]:
+            - generic [ref=e101]:
+              - checkbox "Hand Tools" [ref=e102]
+              - text: Hand Tools
+            - list [ref=e103]:
+              - group "Categories" [ref=e104]:
+                - generic [ref=e105]: Categories
+                - generic [ref=e107]:
+                  - checkbox "Hammer" [ref=e108]
+                  - text: Hammer
+                - generic [ref=e110]:
+                  - checkbox "Hand Saw" [ref=e111]
+                  - text: Hand Saw
+                - generic [ref=e113]:
+                  - checkbox "Wrench" [ref=e114]
+                  - text: Wrench
+                - generic [ref=e116]:
+                  - checkbox "Screwdriver" [ref=e117]
+                  - text: Screwdriver
+                - generic [ref=e119]:
+                  - checkbox "Pliers" [ref=e120]
+                  - text: Pliers
+                - generic [ref=e122]:
+                  - checkbox "Chisels" [ref=e123]
+                  - text: Chisels
+                - generic [ref=e125]:
+                  - checkbox "Measures" [ref=e126]
+                  - text: Measures
+          - generic [ref=e127]:
+            - generic [ref=e128]:
+              - checkbox "Power Tools" [ref=e129]
+              - text: Power Tools
+            - list [ref=e130]:
+              - group "Categories" [ref=e131]:
+                - generic [ref=e132]: Categories
+                - generic [ref=e134]:
+                  - checkbox "Grinder" [ref=e135]
+                  - text: Grinder
+                - generic [ref=e137]:
+                  - checkbox "Sander" [ref=e138]
+                  - text: Sander
+                - generic [ref=e140]:
+                  - checkbox "Saw" [ref=e141]
+                  - text: Saw
+                - generic [ref=e143]:
+                  - checkbox "Drill" [ref=e144]
+                  - text: Drill
+          - generic [ref=e145]:
+            - generic [ref=e146]:
+              - checkbox "Other" [ref=e147]
+              - text: Other
+            - list [ref=e148]:
+              - group "Categories" [ref=e149]:
+                - generic [ref=e150]: Categories
+                - generic [ref=e152]:
+                  - checkbox "Tool Belts" [ref=e153]
+                  - text: Tool Belts
+                - generic [ref=e155]:
+                  - checkbox "Storage Solutions" [ref=e156]
+                  - text: Storage Solutions
+                - generic [ref=e158]:
+                  - checkbox "Workbench" [ref=e159]
+                  - text: Workbench
+                - generic [ref=e161]:
+                  - checkbox "Safety Gear" [ref=e162]
+                  - text: Safety Gear
+                - generic [ref=e164]:
+                  - checkbox "Fasteners" [ref=e165]
+                  - text: Fasteners
+        - heading "By brand:" [level=4] [ref=e167]
+        - group "Brands" [ref=e168]:
+          - generic [ref=e169]: Brands
+          - generic [ref=e171]:
+            - checkbox "ForgeFlex Tools" [ref=e172]
+            - text: ForgeFlex Tools
+          - generic [ref=e174]:
+            - checkbox "MightyCraft Hardware" [ref=e175]
+            - text: MightyCraft Hardware
+        - heading "Sustainability:" [level=4] [ref=e177]
+        - group "Eco-Friendly Products" [ref=e178]:
+          - generic [ref=e179]: Eco-Friendly Products
+          - generic [ref=e181]:
+            - checkbox "Show only eco-friendly products" [ref=e182]
+            - text: Show only eco-friendly products
+      - generic [ref=e183]:
+        - 'heading "Searched for: Pliers" [level=3] [ref=e184]'
+        - paragraph [ref=e185]: 4 products found for 'Pliers'
+        - generic [ref=e186]:
+          - 'link "Combination Pliers Compare Combination Pliers CO₂: A B C D E Out of stock $14.15" [ref=e187]':
+            - /url: /product/01KXQMWE32D9MZEK750NZPN528
+            - generic [ref=e188]:
+              - img "Combination Pliers" [ref=e189]
+              - button "Compare" [ref=e190] [cursor=pointer]:
+                - img [ref=e192]
+            - generic [ref=e194]:
+              - heading "Combination Pliers" [level=5] [ref=e195]
+              - generic "A = most environmentally friendly, E = higher environmental impact" [ref=e196]:
+                - text: "CO₂:"
+                - generic [ref=e197]: A
+                - generic [ref=e198]: B
+                - generic [ref=e199]: C
+                - generic [ref=e200]: D
+                - generic [ref=e201]: E
+            - generic [ref=e202]:
+              - generic [ref=e203]: Out of stock
+              - generic [ref=e204]: $14.15
+          - 'link "Pliers Compare Pliers CO₂: A B C D E Out of stock $12.01" [ref=e205]':
+            - /url: /product/01KXQMWE35Z8TXNN3YY046N250
+            - generic [ref=e206]:
+              - img "Pliers" [ref=e207]
+              - button "Compare" [ref=e208] [cursor=pointer]:
+                - img [ref=e210]
+            - generic [ref=e212]:
+              - heading "Pliers" [level=5] [ref=e213]
+              - generic "A = most environmentally friendly, E = higher environmental impact" [ref=e214]:
+                - text: "CO₂:"
+                - generic [ref=e215]: A
+                - generic [ref=e216]: B
+                - generic [ref=e217]: C
+                - generic [ref=e218]: D
+                - generic [ref=e219]: E
+            - generic [ref=e220]:
+              - generic [ref=e221]: Out of stock
+              - generic [ref=e222]: $12.01
+          - 'link "Long Nose Pliers Compare Long Nose Pliers CO₂: A B C D E Out of stock $14.24" [ref=e223]':
+            - /url: /product/01KXQMWE3BAVHJ3M2G4RBVDYHP
+            - generic [ref=e224]:
+              - img "Long Nose Pliers" [ref=e225]
+              - button "Compare" [ref=e226] [cursor=pointer]:
+                - img [ref=e228]
+            - generic [ref=e230]:
+              - heading "Long Nose Pliers" [level=5] [ref=e231]
+              - generic "A = most environmentally friendly, E = higher environmental impact" [ref=e232]:
+                - text: "CO₂:"
+                - generic [ref=e233]: A
+                - generic [ref=e234]: B
+                - generic [ref=e235]: C
+                - generic [ref=e236]: D
+                - generic [ref=e237]: E
+            - generic [ref=e238]:
+              - generic [ref=e239]: Out of stock
+              - generic [ref=e240]: $14.24
+          - 'link "Slip Joint Pliers Compare Slip Joint Pliers CO₂: A B C D E Out of stock $9.17" [ref=e241]':
+            - /url: /product/01KXQMWE3DMPVEA61EAVSSQE0Y
+            - generic [ref=e242]:
+              - img "Slip Joint Pliers" [ref=e243]
+              - button "Compare" [ref=e244] [cursor=pointer]:
+                - img [ref=e246]
+            - generic [ref=e248]:
+              - heading "Slip Joint Pliers" [level=5] [ref=e249]
+              - generic "A = most environmentally friendly, E = higher environmental impact" [ref=e250]:
+                - text: "CO₂:"
+                - generic [ref=e251]: A
+                - generic [ref=e252]: B
+                - generic [ref=e253]: C
+                - generic [ref=e254]: D
+                - generic [ref=e255]: E
+            - generic [ref=e256]:
+              - generic [ref=e257]: Out of stock
+              - generic [ref=e258]: $9.17
+  - contentinfo [ref=e260]:
+    - generic [ref=e261]:
+      - text: This is a DEMO application (
+      - link "GitHub repo" [ref=e262]:
+        - /url: https://github.com/testsmith-io/practice-software-testing
+      - text: ), used for software testing training purpose. |
+      - link "Privacy Policy" [ref=e263]:
+        - /url: /privacy
+      - text: "| Banner photo by"
+      - link "Barn Images" [ref=e264]:
+        - /url: https://unsplash.com/@barnimages
+      - text: "on"
+      - link "Unsplash" [ref=e265]:
+        - /url: https://unsplash.com/photos/t5YUoHW6zRo
+      - text: .
+    - generic [ref=e266]: v2.3 | Built 2026-07-06 | Angular 20.0.5
+  - button "Open chat" [ref=e268] [cursor=pointer]:
+    - img [ref=e269]
+```
+
+# Test source
+
+```ts
+  1  | import type { Locator } from '@playwright/test';
+  2  | import { BasePage } from './BasePage';
+  3  | import { stabilize } from '../stabilize';
+  4  | 
+  5  | export class HomePage extends BasePage {
+  6  |   readonly path = '/';
+  7  | 
+  8  |   readonly productCards: Locator = this.page.getByTestId('product-name');
+  9  |   readonly searchInput: Locator = this.page.getByTestId('search-query');
+  10 |   readonly searchSubmit: Locator = this.page.getByTestId('search-submit');
+  11 | 
+  12 |   async ready(): Promise<void> {
+  13 |     await this.productCards.first().waitFor({ state: 'visible' });
+  14 |   }
+  15 | 
+  16 |   async search(term: string): Promise<void> {
+  17 |     await this.searchInput.fill(term);
+  18 |     // Arm the wait BEFORE submitting: the grid is already showing the pre-search
+  19 |     // products, so waiting on productCards would resolve instantly against stale
+  20 |     // DOM. Key the wait to the actual search round-trip instead.
+> 21 |     const searchResponse = this.page.waitForResponse(
+     |                                      ^ Error: page.waitForResponse: Test timeout of 60000ms exceeded.
+  22 |       (r) => r.url().includes('/products/search') && r.request().method() === 'GET',
+  23 |     );
+  24 |     if (await this.searchSubmit.isVisible().catch(() => false)) {
+  25 |       await this.searchSubmit.click();
+  26 |     } else {
+  27 |       await this.searchInput.press('Enter');
+  28 |     }
+  29 |     await searchResponse;
+  30 |     await stabilize(this.page);
+  31 |   }
+  32 | 
+  33 |   /**
+  34 |    * Open a product by its exact name rather than position. The catalog is
+  35 |    * live/reseedable, so clicking `.first()` is non-deterministic — pin the
+  36 |    * snapshot to a known product so a reseed can't silently swap the page.
+  37 |    */
+  38 |   async openProductByName(name: string): Promise<void> {
+  39 |     await this.productCards.filter({ hasText: name }).first().click();
+  40 |   }
+  41 | }
+  42 | 
+```
