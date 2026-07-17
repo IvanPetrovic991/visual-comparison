@@ -106,7 +106,7 @@ jobs:
         run: npm ci
 
       - name: Download all shard blob reports
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: all-blob-reports
           pattern: blob-report-*
@@ -138,7 +138,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download Allure results from all shards
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: allure-results
           pattern: allure-results-*
