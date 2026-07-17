@@ -1,0 +1,20 @@
+version: 2
+updates:
+  # Keep Playwright, TypeScript, Allure, etc. current — the Playwright version is
+  # pinned by hand in package.json, the Dockerfile and the CI container, so a
+  # grouped npm PR is the cue to bump all three together.
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      dev-dependencies:
+        patterns:
+          - "*"
+
+  # Keep the third-party GitHub Actions (checkout, upload-artifact,
+  # simple-elf/allure-report-action, peaceiris/actions-gh-pages) up to date.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly

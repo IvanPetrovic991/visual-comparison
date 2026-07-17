@@ -6,6 +6,7 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+results.json
 
 # Allure report output (generated; the hosted report lives on GitHub Pages)
 allure-results/

@@ -1,0 +1,23 @@
+# The Dockerfile runs `npm ci` inside the image, then `COPY . .`. Without this
+# file that copy would clobber the freshly-installed, correct-arch node_modules
+# with the host's, and drag in .git and local reports — bloating the image and
+# breaking reproducibility.
+node_modules
+.git
+.github
+
+# Generated test / report output
+test-results
+playwright-report
+blob-report
+playwright/.cache
+allure-results
+allure-report
+allure-history
+results.json
+
+# Local tooling & docs not needed to run tests
+.claude
+docs
+*.log
+.DS_Store

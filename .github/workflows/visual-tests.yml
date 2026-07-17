@@ -9,11 +9,18 @@ on:
 permissions:
   contents: read
 
+# Serialise runs per ref: a newer push cancels an in-flight one, so concurrent
+# pushes can't race each other publishing to the gh-pages branch.
+concurrency:
+  group: visual-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # ── Horizontal scaling: split the suite across N shards, one runner each ──
   visual:
     name: Shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     # Pinned to the same Playwright version as package.json so rendering in CI
     # is byte-for-byte identical to `npm run docker:*` locally.
     container:
@@ -45,12 +52,14 @@ jobs:
           BASE_URL: https://practicesoftwaretesting.com
 
       - name: Reset reports so both reports capture the with-bugs run
-        run: rm -rf allure-results blob-report
+        run: rm -rf allure-results blob-report results.json
 
       - name: Detect regressions in the WITH-BUGS build (diffs expected)
         id: regression
         continue-on-error: true
-        run: npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+        # --retries=0: every failure here is EXPECTED, so retrying just triples
+        # the cost of the slowest stage (and re-runs deliberately-broken pages).
+        run: npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --retries=0
         env:
           BASE_URL: https://with-bugs.practicesoftwaretesting.com
 
@@ -62,13 +71,11 @@ jobs:
           path: allure-results/
           retention-days: 1
 
-      - name: Assert this shard caught its regressions
-        run: |
-          if [ "${{ steps.regression.outcome }}" = "success" ]; then
-            echo "::error::Shard ${{ matrix.shardIndex }} expected visual diffs against the with-bugs build but found none."
-            exit 1
-          fi
-          echo "✅ Shard ${{ matrix.shardIndex }} correctly flagged the regressions."
+      - name: Assert this shard caught its regressions (and only via visual diffs)
+        # Fails the shard unless there is ≥1 failure AND every failure is a
+        # screenshot comparison — so an outage/timeout can't masquerade as a
+        # "caught regression" on the public dashboard.
+        run: node scripts/assert-visual-failures.mjs results.json
 
       - name: Upload this shard's blob report
         if: ${{ !cancelled() }}
@@ -84,6 +91,7 @@ jobs:
     if: ${{ !cancelled() }}
     needs: [visual]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -117,9 +125,12 @@ jobs:
   # ── Build the Allure dashboard (with history) and publish it to GitHub Pages ──
   allure:
     name: Allure report → GitHub Pages
-    if: ${{ !cancelled() }}
+    # Publish only from pushes to main — never from PRs (incl. forks), which
+    # must not be able to push to the gh-pages branch.
+    if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs: [visual]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: write
     steps:
