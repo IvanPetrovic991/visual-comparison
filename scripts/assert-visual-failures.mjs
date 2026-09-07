@@ -26,9 +26,20 @@ try {
   process.exit(1);
 }
 
-// A screenshot mismatch is the one failure we WANT. Anything else is rot.
-const SCREENSHOT_MARKERS =
-  /screenshot comparison failed|toHaveScreenshot|expected an image|of all image pixels/i;
+// A screenshot MISMATCH is the one failure we WANT. Match only the comparator's
+// own verdict — the pixel count, or the dimensions when the two images differ in
+// size. Matching the matcher's NAME instead would wave through the failures that
+// also mention `toHaveScreenshot` while comparing nothing at all: a page that
+// never stabilised ("Timeout 20000ms exceeded"), or a baseline that was missing
+// ("A snapshot doesn't exist at …, writing actual"). Covered by
+// scripts/assert-visual-failures.test.mjs.
+const SCREENSHOT_MISMATCH =
+  /\d+ pixels \(ratio [\d.]+ of all image pixels\) are different|Expected an image \d+px by \d+px, received \d+px by \d+px/i;
+
+// Playwright colourises error messages in CI, and the ANSI escapes land inside
+// the JSON report (e.g. "expect(\u001b[31mpage\u001b[39m).toHaveScreenshot").
+// Strip them so the markers above match the plain text, whatever the colour mode.
+const stripAnsi = (text) => text.replace(/\u001b\[[0-9;]*m/g, '');
 
 /** Walk the (recursively nested) suite tree and yield every spec. */
 function* eachSpec(suite) {
@@ -45,10 +56,9 @@ for (const suite of report.suites ?? []) {
         (r) => r.status !== 'passed' && r.status !== 'skipped',
       );
       if (bad.length === 0) continue;
-      const messages = bad.flatMap((r) => [
-        r.error?.message ?? '',
-        ...(r.errors ?? []).map((e) => e.message ?? ''),
-      ]);
+      const messages = bad
+        .flatMap((r) => [r.error?.message ?? '', ...(r.errors ?? []).map((e) => e.message ?? '')])
+        .map(stripAnsi);
       failures.push({ title: spec.title, project: test.projectName ?? '?', messages });
     }
   }
@@ -63,9 +73,9 @@ if (failures.length === 0) {
   process.exit(1);
 }
 
-const nonVisual = failures.filter(
-  (f) => !f.messages.some((m) => SCREENSHOT_MARKERS.test(m)),
-);
+// `some`, not `every`: with retries enabled a test may carry a transient timeout
+// alongside the attempt that did produce a diff — the diff is what matters.
+const nonVisual = failures.filter((f) => !f.messages.some((m) => SCREENSHOT_MISMATCH.test(m)));
 
 if (nonVisual.length > 0) {
   console.error(

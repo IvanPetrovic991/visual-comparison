@@ -5,9 +5,9 @@
 ### Scalable visual regression testing with Playwright + TypeScript
 
 [![Visual Regression](https://github.com/IvanPetrovic991/visual-comparison/actions/workflows/visual-tests.yml/badge.svg)](https://github.com/IvanPetrovic991/visual-comparison/actions/workflows/visual-tests.yml)
-[![Playwright](https://img.shields.io/badge/Playwright-1.61-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Node](https://img.shields.io/badge/Node-%3E%3D20-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Playwright](https://img.shields.io/github/package-json/dependency-version/IvanPetrovic991/visual-comparison/dev/@playwright/test?label=Playwright&color=2EAD33&logo=playwright&logoColor=white)](https://playwright.dev/)
+[![TypeScript](https://img.shields.io/github/package-json/dependency-version/IvanPetrovic991/visual-comparison/dev/typescript?label=TypeScript&color=3178C6&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Node](https://img.shields.io/badge/Node-%3E%3D22-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Allure Dashboard](https://img.shields.io/badge/Allure-dashboard-ff6b6b)](https://ivanpetrovic.dev/visual-comparison/)
 
@@ -58,7 +58,7 @@ Run the suite against the clean build and everything is green. Point it at the w
 
 <div align="center">
 <img src="docs/images/report-overview.png" width="820" alt="Playwright HTML report — all tests failed against the with-bugs build"/>
-<br/><sub>Playwright HTML report running against the <b>with-bugs</b> build — 11 failures caught, grouped by feature, tagged <code>@smoke</code> / <code>@visual</code>.</sub>
+<br/><sub>Playwright HTML report running against the <b>with-bugs</b> build — every scenario fails on a real pixel diff, grouped by feature, tagged <code>@smoke</code> / <code>@visual</code>.</sub>
 </div>
 
 ### A caught regression, up close
@@ -90,7 +90,7 @@ Every failure ships with the full diff, the stabilization call-log, and the sour
 | **Playwright HTML** (native) | the **visual diffs** — Expected / Actual / Diff slider per failure | `playwright-report` CI artifact, merged from every shard |
 | **Allure dashboard** | the **caught regressions** — image-diff slider + failure reason, plus history & trends | 🔗 **[live on GitHub Pages](https://ivanpetrovic.dev/visual-comparison/)** |
 
-Both report on the **with-bugs run**, so the failures are real. The native Playwright report stays primary for its per-failure diff slider, while **Allure** runs as a *secondary* reporter — a hosted dashboard where every failed test carries its **interactive image diff (Expected / Actual / Diff)** and the exact reason it failed, with history & trends across runs.
+Both report on the **with-bugs run**, so the failures are real — and the dashboard is only published when every shard passed its clean sanity check *and* its "all failures are visual diffs" assertion, so it never shows a run that broke for the wrong reason. The native Playwright report stays primary for its per-failure diff slider, while **Allure** runs as a *secondary* reporter — a hosted dashboard where every failed test carries its **interactive image diff (Expected / Actual / Diff)** and the exact reason it failed, with history & trends across runs.
 
 <div align="center">
 
@@ -110,10 +110,10 @@ Both report on the **with-bugs run**, so the failures are real. The native Playw
 
 ## 🧰 Tech stack
 
-- **[Playwright Test](https://playwright.dev/)** `1.61` — built-in `toHaveScreenshot()` pixel comparison, **no external SaaS** (Percy/Applitools not required).
-- **TypeScript** `6.0` — a fully typed Page Object Model + fixtures.
+- **[Playwright Test](https://playwright.dev/)** `1.63` — built-in `toHaveScreenshot()` pixel comparison, **no external SaaS** (Percy/Applitools not required).
+- **TypeScript** `7.0` (the native compiler) — a fully typed Page Object Model + fixtures.
 - **Cross-browser & responsive** — Chromium, Firefox, WebKit on desktop, plus tablet and mobile viewports.
-- **Docker** — the official Playwright image guarantees identical rendering locally and in CI.
+- **Docker** — the same pinned Playwright image (same browser builds, fonts and OS libraries) locally and in CI, kept in lockstep with `package.json` by a check script.
 - **GitHub Actions** — sharded matrix + blob reporter + `merge-reports` for one combined HTML report.
 - **[Allure](https://allurereport.org/)** — a secondary reporter feeding a hosted [trends dashboard](https://ivanpetrovic.dev/visual-comparison/) (history, flakiness) published to GitHub Pages.
 
@@ -169,13 +169,13 @@ flowchart LR
     B1 & B2 & B3 & B4 --> M[merge-reports] --> R[(One HTML report)]
 ```
 
-Bump `shardTotal` in [`visual-tests.yml`](.github/workflows/visual-tests.yml) as the suite grows — `fullyParallel: true` keeps shards evenly balanced at the individual-test level.
+Grow the matrix in [`visual-tests.yml`](.github/workflows/visual-tests.yml) as the suite grows — set `shardTotal` **and** extend `shardIndex` to `[1, …, N]` together — `fullyParallel: true` splits at the individual-test level, so shards stay evenly balanced.
 
 ### 5. Other scale-minded choices
 
 | Concern | Approach |
 | --- | --- |
-| **Flake** | Central `expect.toHaveScreenshot` defaults + a shared [`stylePath`](tests/support/visual-stabilize.css) stylesheet that freezes animations & hides the chat widget for the whole suite |
+| **Flake** | Central `expect.toHaveScreenshot` defaults + a shared [`stylePath`](tests/support/visual-stabilize.css) stylesheet that freezes animations, hides the chat / live-activity widgets and blanks the footer build stamp for the whole suite |
 | **Selectors** | `testIdAttribute: 'data-test'` → clean `getByTestId('product-name')`, immune to CSS/text refactors |
 | **Baseline churn** | `updateSnapshots: 'none'` in CI (fails on drift); update intentionally with `npm run baseline:changed` (rewrites only what differs) |
 | **Determinism** | `scale: 'css'`, pinned `locale`/`timezone`/`colorScheme`, and the pinned Playwright Docker image |
@@ -195,31 +195,36 @@ visual-comparison/
 │       ├── fixtures.ts                  # test.extend — injects page objects
 │       ├── pageRegistry.ts              # ⭐ the single source of visual coverage
 │       ├── stabilize.ts                 # runtime stabilization (fonts, lazy images, overlays)
-│       ├── visual-stabilize.css         # stylePath — freezes animations, hides chat widget
+│       ├── visual-stabilize.css         # stylePath — freezes animations, hides volatile widgets
 │       └── pages/                       # Page Object Model
 │           ├── BasePage.ts
 │           ├── HomePage.ts
 │           ├── ProductDetailPage.ts
 │           ├── ContactPage.ts
 │           └── LoginPage.ts
-├── .github/workflows/visual-tests.yml   # sharded CI: clean baseline → with-bugs demo → merge
-├── Dockerfile · docker-compose.yml      # deterministic rendering
+├── scripts/
+│   └── assert-visual-failures.mjs       # CI guard: every with-bugs failure must be a real diff
+├── .github/
+│   ├── workflows/visual-tests.yml       # typecheck + sharded CI: clean baseline → with-bugs → merge
+│   └── dependabot.yml                   # weekly npm + Actions bumps
+├── Dockerfile · docker-compose.yml      # deterministic rendering (.dockerignore keeps the image lean)
 ├── playwright.config.ts
-└── tsconfig.json
+├── tsconfig.json
+└── .nvmrc                               # Node 24 — the same major CI and the Docker image run
 ```
 
 ---
 
 ## ⚡ Quick start
 
-> Requires **Node ≥ 20**.
+> Requires **Node ≥ 22** — [`.nvmrc`](.nvmrc) pins **24** (LTS), the same major CI and the Docker image run.
 
 ```bash
 # 1. Install dependencies + browsers
 npm install
 npx playwright install --with-deps
 
-# 2. Record baselines from the CLEAN build (first run only)
+# 2. Record baselines from the CLEAN build (re-run after an intentional UI change)
 npm run baseline
 
 # 3. Re-run against the clean build — everything should pass
@@ -234,13 +239,15 @@ npm run report
 
 ### Recommended: run in Docker for deterministic pixels
 
-Fonts and anti-aliasing differ between macOS, Windows and Linux, so a baseline recorded on your Mac won't match one recorded in CI (Linux). For **identical** rendering everywhere, run inside the official Playwright container:
+Fonts and anti-aliasing differ between macOS, Windows and Linux, so a baseline recorded on your Mac won't match one recorded in CI (Linux). For the closest possible match, run inside the official Playwright container (the scripts rebuild the image when `package.json` changes, and only `docker:baseline` may write baselines):
 
 ```bash
-npm run docker:baseline   # record Linux baselines (match CI exactly)
-npm run docker:test       # verify against the clean build
+npm run docker:baseline   # record Linux baselines (same image as CI)
+npm run docker:test       # verify against the clean build — never writes baselines
 npm run docker:bugs       # catch the regressions in the with-bugs build
 ```
+
+> CPU architecture still matters: an Apple-Silicon host runs the `arm64` variant of the image, CI runs `x64`, and the two can differ by a few anti-aliased pixels — which is why CI records its own baselines every run instead of trusting committed ones.
 
 ---
 
@@ -252,13 +259,15 @@ npm run docker:bugs       # catch the regressions in the with-bugs build
 | `npm run test:bugs` | Run against the **with-bugs** build — expected to fail on real diffs |
 | `npm run test:smoke` | Run only `@smoke`-tagged tests (fast gate) |
 | `npm run test:visual` | Run only `@visual`-tagged tests |
-| `npm run baseline` | (Re)record **all** baselines — after an intentional UI change |
+| `npm run baseline` | (Re)record **all** baselines — after an intentional UI change (`-- --grep <name>` limits it to one case) |
 | `npm run baseline:changed` | Rewrite **only** the baselines that differ (clean git diffs) |
-| `npm run test:ci` | Chromium desktop + mobile only (fast subset) |
+| `npm run test:quick` | Chromium desktop + mobile only — a fast local subset (CI runs the full five-project suite, sharded) |
+| `npm run check:lockstep` | Verify `package.json`, the lockfile, the Dockerfile and the CI container agree on the Playwright version |
 | `npm run report` | Open the HTML report with diff images |
 | `npm run merge-report` | Merge sharded `blob` reports into one HTML report |
 | `npm run allure` | Generate & open the Allure report locally (needs a Java runtime) |
 | `npm run typecheck` | Type-check the suite with `tsc` |
+| `npm run test:scripts` | Unit-test the CI guard itself (`node:test`, no dependencies) |
 | `npm run docker:*` | The same flows inside the pinned Playwright Docker image |
 
 Point the suite anywhere with an env var:
@@ -274,24 +283,30 @@ BASE_URL=https://with-bugs.practicesoftwaretesting.com npm test
 Visual tests are only useful if they're stable. Flake is removed in layers:
 
 - **Animations, transitions, smooth-scroll and caret** — frozen via the shared [`visual-stabilize.css`](tests/support/visual-stabilize.css) injected by Playwright at capture time (`stylePath`), plus the matcher's `animations: 'disabled'`.
-- **The live-chat widget** — hidden by that same stylesheet (it polls forever and animates in a cross-origin iframe).
+- **The live-chat and live-activity widgets** — hidden by that same stylesheet (they stream other visitors' activity, so their state is never deterministic).
+- **The footer build stamp** (`v2.4 | Built 2026-08-22 | …`) — blanked with `visibility: hidden` (layout kept) because it changes on every deploy of the demo site.
+- **The "By brand" filter** — hidden at capture time: brands are user-mutable through the sandbox's public API (the list went from 12 junk entries to 3 within one afternoon), so it would fail every sidebar screenshot for no UI reason. Categories are seeded and stay in the shot.
 - **Web fonts** — awaited via `document.fonts.ready` so no glyph swaps mid-shot.
-- **Lazy-loaded images** — scrolled into view and waited on until decoded.
+- **Lazy-loaded images** — scrolled into view and waited on until *settled* (loaded **or** errored, bounded), so a deliberately broken image on the with-bugs build can't stall the run.
+- **Data-driven regions** — a per-case `mask` (e.g. the product price) so a catalog reseed can't fail a layout test.
 - **DPI / locale** — `scale: 'css'` and pinned `locale` / `timezone` / `colorScheme` keep rendering identical across machines.
-- **Tolerance** — a small `maxDiffPixelRatio` + `threshold` absorbs sub-pixel anti-aliasing noise without hiding genuine changes.
+- **Tolerance** — a small `maxDiffPixelRatio` + `threshold` absorbs sub-pixel anti-aliasing noise, while an absolute `maxDiffPixels` cap stops a full-page shot from hiding a small real change (Playwright fails on whichever limit is stricter).
 
 Routing note: the with-bugs deployment uses **hash routing** and 404s on deep links, so pages like Contact/Sign-in are reached by **clicking through the app's own navigation** (which also opens the hamburger menu on mobile) — this works on every deployment and exercises the real client-side router.
+
+Search note: the clean v5.0 build sends its product search as an HTTP **`QUERY`** request with a JSON body, while the with-bugs build still sends `GET …?q=`. A wait pinned to one HTTP verb timed out for ten weeks of CI, so the search now waits on the state the app derives from the response — the results container it stamps as `search_completed`, plus the result count that only renders once results arrive. No copy of the API's shape to keep in sync, and an outage fails loudly instead of baselining an empty grid.
 
 ---
 
 ## 🤖 CI pipeline
 
-[`.github/workflows/visual-tests.yml`](.github/workflows/visual-tests.yml) runs on every push and PR, inside the pinned Playwright container:
+[`.github/workflows/visual-tests.yml`](.github/workflows/visual-tests.yml) runs on every push and PR:
 
-1. **Shard** the suite across a 4-way matrix (one runner each).
-2. Each shard **records** baselines from the clean build, **sanity-checks** the clean build against them (no false positives), then **compares** the with-bugs build and **asserts** the diffs were caught.
-3. Each shard uploads a `blob` report and its **Allure results** — both from the with-bugs run, so the failures and image diffs show up in both reports.
-4. A **merge** job stitches the blobs into one native HTML report (with all diffs); an **Allure** job builds the dashboard with history and publishes it to GitHub Pages.
+1. A **typecheck** job gives every push/PR (Dependabot's included) a fast signal that doesn't depend on the third-party site: `tsc`, the unit tests for the CI guard, and a check that the Playwright version in `package.json` still matches the Docker and CI image tags.
+2. **Shard** the suite across a 4-way matrix (one runner each), inside the pinned Playwright container.
+3. Each shard **records** baselines from the clean build, **sanity-checks** the clean build against them (no false positives), then **compares** the with-bugs build and **asserts** — via [`scripts/assert-visual-failures.mjs`](scripts/assert-visual-failures.mjs) on the JSON report — that there were failures *and* every one of them carries the comparator's own verdict (a pixel count or a size mismatch). A timeout, an outage or a missing baseline fails the shard instead of posing as a caught regression, and the guard has [its own tests](scripts/assert-visual-failures.test.mjs) so that promise is checked too.
+4. Each shard uploads a `blob` report and its **Allure results** — both from the with-bugs run, so the failures and image diffs show up in both reports.
+5. A **merge** job stitches the blobs into one native HTML report (with all diffs, even when a shard failed — that's how you debug it); an **Allure** job builds the dashboard with history and publishes it to GitHub Pages **only** from a push to `main` on which every shard passed.
 
 📊 **Live Allure dashboard:** **https://ivanpetrovic.dev/visual-comparison/**
 
@@ -309,7 +324,7 @@ Download the `playwright-report` artifact from any run to browse the caught regr
   tags: ['@visual'],
   run: async ({ homePage, page }) => {
     await homePage.open();
-    await homePage.openFirstProduct();
+    await homePage.openProductByName('Combination Pliers'); // pin to a product, not a position
     await page.getByTestId('add-to-cart').click();
     await page.getByTestId('nav-cart').click();
   },
@@ -325,6 +340,7 @@ Then `npm run baseline` to record it. That single object becomes a test across *
 - Selectors target the Toolshop's `data-test` attributes; if the app changes them, update the relevant page object.
 - The clean / with-bugs sites are third-party demos — this project tests them but is not affiliated with them.
 - Committed baselines in this repo are macOS (`darwin`); CI regenerates Linux baselines in-container each run, so the two never conflict. Use the Docker scripts for local/CI parity.
+- The demo is a **shared public sandbox** that keeps evolving (anyone can add brands/products through its API, and the UI ships new banners and widgets) — so the committed macOS baselines will drift over time. CI is unaffected (it records fresh baselines every run); locally, re-record with `npm run baseline` once you've confirmed the change is legitimate.
 
 ## License
 
