@@ -6,7 +6,13 @@ import { dismissOverlays, stabilize } from '../stabilize';
  * Subclasses declare their `path` and how to detect that the page is `ready()`.
  */
 export abstract class BasePage {
-  abstract readonly path: string;
+  /**
+   * Deep-link route used by `open()`. Leave it undefined for pages that have
+   * no stable URL (product detail — ids are seeded ULIDs) and must be reached
+   * through the UI; calling `open()` on such a page fails loudly instead of
+   * navigating to a route that doesn't exist.
+   */
+  readonly path?: string;
 
   constructor(protected readonly page: Page) {}
 
@@ -15,6 +21,11 @@ export abstract class BasePage {
 
   /** Navigate, clear overlays, wait for content, and stabilize for snapshotting. */
   async open(): Promise<this> {
+    if (this.path === undefined) {
+      throw new Error(
+        `${this.constructor.name} has no deep-link path — reach it through the UI instead.`,
+      );
+    }
     await this.page.goto(this.path, { waitUntil: 'domcontentloaded' });
     await dismissOverlays(this.page);
     await this.ready();

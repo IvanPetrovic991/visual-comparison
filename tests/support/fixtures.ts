@@ -6,8 +6,9 @@ import { ContactPage } from './pages/ContactPage';
 import { LoginPage } from './pages/LoginPage';
 
 /**
- * Every page object available to a test, pre-instantiated. Fixtures are lazy:
- * a page object is only constructed if a test actually destructures it.
+ * Every page object available to a test, pre-instantiated. The generated spec
+ * destructures all of them, so each is built for every test — constructors are
+ * trivially cheap; the value here is ergonomics and type-safety, not laziness.
  */
 export type VisualFixtures = {
   page: Page;
@@ -20,7 +21,7 @@ export type VisualFixtures = {
 /**
  * Extended `test` that injects page objects, removing `new HomePage(page)`
  * boilerplate from every spec. Import this instead of '@playwright/test'.
- * At 1000+ tests this is the difference between 1000 constructor calls and zero.
+ * At 1000+ tests that is one destructuring per test instead of a constructor block.
  */
 export const test = base.extend<Omit<VisualFixtures, 'page'>>({
   homePage: async ({ page }, use) => {

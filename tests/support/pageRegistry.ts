@@ -6,8 +6,8 @@ export interface VisualCase {
   category: string;
   /** Stable snapshot name. Baselines key off this, so don't rename casually. */
   name: string;
-  /** Playwright tags for selective runs, e.g. ['@smoke', '@visual']. */
-  tags: string[];
+  /** Playwright tags for selective runs, e.g. ['@smoke', '@visual'] — the '@' is enforced. */
+  tags: `@${string}`[];
   /** Skip on viewports narrower than this (px) — for desktop-only flows. */
   minWidth?: number;
   /** Capture the full scrollable page (default true). */
@@ -29,6 +29,10 @@ export interface VisualCase {
  * no new test function. This data-driven registry is what lets the suite scale
  * to 1000+ snapshots without 1000 hand-written tests. Each case is multiplied
  * across every project (browser × viewport) automatically.
+ *
+ * Anything that changes the pixels — a `mask`, the shared stylesheet, `scale`,
+ * a viewport — must be re-recorded (`npm run baseline`) in the SAME commit, or
+ * the committed baselines can never match again.
  */
 export const visualCases: VisualCase[] = [
   {

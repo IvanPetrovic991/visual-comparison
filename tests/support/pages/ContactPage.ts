@@ -3,7 +3,7 @@ import { BasePage } from './BasePage';
 import { stabilize } from '../stabilize';
 
 export class ContactPage extends BasePage {
-  readonly path = '/contact';
+  override readonly path = '/contact';
 
   readonly firstName: Locator = this.page.getByTestId('first-name');
   readonly lastName: Locator = this.page.getByTestId('last-name');
@@ -12,12 +12,12 @@ export class ContactPage extends BasePage {
   readonly message: Locator = this.page.getByTestId('message');
   readonly submit: Locator = this.page.getByTestId('contact-submit');
 
-  async ready(): Promise<void> {
+  override async ready(): Promise<void> {
     await this.firstName.waitFor({ state: 'visible' });
   }
 
   /** Reach Contact via the navbar so it works on hash-routed deployments too. */
-  async open(): Promise<this> {
+  override async open(): Promise<this> {
     await this.openViaNav('nav-contact');
     return this;
   }
@@ -27,7 +27,9 @@ export class ContactPage extends BasePage {
     await this.firstName.fill('Ada');
     await this.lastName.fill('Lovelace');
     await this.email.fill('ada@example.com');
-    await this.subject.selectOption({ index: 1 }).catch(() => undefined);
+    // Not swallowed: if the subject dropdown ever loses its options, this must
+    // fail loudly rather than baseline a screenshot with an empty select.
+    await this.subject.selectOption({ index: 1 });
     await this.message.fill(
       'This is a deterministic message used for visual regression testing.',
     );

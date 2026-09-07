@@ -5,16 +5,17 @@ import type { Page } from '@playwright/test';
  * pollutes a screenshot. Silent no-op when nothing is present.
  */
 export async function dismissOverlays(page: Page): Promise<void> {
+  // The Toolshop has no consent banner today; this is a cheap hook for targets
+  // that do. Exact button names only — a substring match could happily click a
+  // real "Accept terms" button on some future page.
   const candidates = [
-    '[data-test="cookie-accept"]',
-    '#cookieconsent button',
-    'button:has-text("Accept all")',
-    'button:has-text("Accept")',
-    'button:has-text("Got it")',
+    page.getByTestId('cookie-accept'),
+    page.locator('#cookieconsent button'),
+    page.getByRole('button', { name: /^(accept( all)?|got it)$/i }),
   ];
 
-  for (const selector of candidates) {
-    const button = page.locator(selector).first();
+  for (const candidate of candidates) {
+    const button = candidate.first();
     if (await button.isVisible().catch(() => false)) {
       await button.click({ timeout: 2_000 }).catch(() => undefined);
     }
@@ -25,8 +26,8 @@ export async function dismissOverlays(page: Page): Promise<void> {
  * Make a page pixel-deterministic before snapshotting:
  *  - kill animations / transitions / smooth-scroll / text caret
  *  - wait for web fonts to finish loading
- *  - force lazy-loaded images into view, then wait for them to decode
- *  - settle the network
+ *  - force lazy-loaded images into view, then wait for them to settle
+ *    (loaded OR errored, bounded — never a decode wait)
  */
 export async function stabilize(page: Page): Promise<void> {
   // NB: animation-freezing and chat-widget hiding now live in
@@ -38,14 +39,16 @@ export async function stabilize(page: Page): Promise<void> {
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
 
   // Nudge lazy-loaded imagery into the viewport, then return to the top.
+  // Instant scrolling on purpose: Bootstrap sets `scroll-behavior: smooth` on
+  // :root, and a smooth scroll would still be animating when the next step runs.
   await page.evaluate(async () => {
     const distance = 400;
     const delay = 50;
-    for (let y = 0; y < document.body.scrollHeight; y += distance) {
-      window.scrollTo(0, y);
+    for (let y = 0; y < document.documentElement.scrollHeight; y += distance) {
+      window.scrollTo({ top: y, behavior: 'instant' });
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: 'instant' });
   });
 
   // Wait until every <img> has SETTLED — loaded OR errored. A broken image
@@ -63,7 +66,9 @@ export async function stabilize(page: Page): Promise<void> {
     })
     .catch(() => undefined);
 
-  // NB: we deliberately do NOT wait for 'networkidle' — this app keeps a chat
-  // poll open, so the network is never idle. No fixed settle sleep either:
-  // toHaveScreenshot re-captures until two consecutive frames are identical.
+  // NB: we deliberately do NOT wait for 'networkidle' — the app holds a
+  // long-lived connection open for its live-activity feed, so the network never
+  // goes idle and the wait would always burn its full timeout. No fixed settle
+  // sleep either: toHaveScreenshot re-captures until two consecutive frames are
+  // identical, which is the same guarantee without the guesswork.
 }

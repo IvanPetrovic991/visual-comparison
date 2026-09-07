@@ -8,17 +8,20 @@ import { visualCases } from '../support/pageRegistry';
  */
 for (const visualCase of visualCases) {
   test.describe(visualCase.category, () => {
+    // Declaration-level skip: decided from the project's `viewport` option
+    // before a browser page is ever created (still reported as "skipped").
+    if (visualCase.minWidth !== undefined) {
+      const minWidth = visualCase.minWidth;
+      test.skip(
+        ({ viewport }) => (viewport?.width ?? 0) < minWidth,
+        `Requires viewport >= ${minWidth}px`,
+      );
+    }
+
     test(
       visualCase.name,
       { tag: visualCase.tags },
       async ({ page, homePage, productPage, contactPage, loginPage }) => {
-        if (visualCase.minWidth) {
-          test.skip(
-            (page.viewportSize()?.width ?? 0) < visualCase.minWidth,
-            `Requires viewport >= ${visualCase.minWidth}px`,
-          );
-        }
-
         const fixtures = { page, homePage, productPage, contactPage, loginPage };
         await visualCase.run(fixtures);
 

@@ -25,3 +25,31 @@
 [id*="chat-widget"] {
   display: none !important;
 }
+
+/*
+ * Hide the "live shop activity" widget: like the chat widget it is a floating
+ * feed of other visitors' actions, so its badge/state is never deterministic.
+ */
+.live-widget,
+[data-test="live-activity-toggle"] {
+  display: none !important;
+}
+
+/*
+ * Blank the footer build stamp ("v2.4 | Built 2026-08-22 | Angular 20.0.5"):
+ * it changes on every deploy of the demo site and would invalidate every
+ * baseline for no UI reason. `visibility` (not `display`) keeps the layout.
+ */
+footer div.text-muted {
+  visibility: hidden !important;
+}
+
+/*
+ * Blank the "By brand" filter rows: brands are user-mutable through the
+ * sandbox's public API (12 junk entries one hour, 3 the next), so their count
+ * would change the sidebar height in every home/search screenshot. The heading
+ * stays; only the rows go, so the layout no longer depends on live data.
+ */
+[data-test="filters"] .checkbox:has(input[data-test^="brand-"]) {
+  display: none !important;
+}
