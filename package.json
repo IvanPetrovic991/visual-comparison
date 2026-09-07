@@ -5,11 +5,11 @@
   "type": "commonjs",
   "private": true,
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "test": "playwright test",
-    "test:ci": "playwright test --project=desktop-chromium --project=mobile-chromium",
+    "test:quick": "playwright test --project=desktop-chromium --project=mobile-chromium",
     "test:smoke": "playwright test --grep @smoke",
     "test:visual": "playwright test --grep @visual",
     "test:bugs": "cross-env BASE_URL=https://with-bugs.practicesoftwaretesting.com playwright test",
@@ -20,16 +20,18 @@
     "allure:generate": "allure generate allure-results --clean -o allure-report",
     "allure": "npm run allure:generate && allure open allure-report",
     "typecheck": "tsc --noEmit",
-    "docker:baseline": "docker compose run --rm visual npm run baseline",
-    "docker:test": "docker compose run --rm visual npm test",
-    "docker:bugs": "docker compose run --rm -e BASE_URL=https://with-bugs.practicesoftwaretesting.com visual npm test"
+    "test:scripts": "node --test \"scripts/**/*.test.mjs\"",
+    "check:lockstep": "node scripts/check-playwright-version.mjs",
+    "docker:baseline": "docker compose run --build --rm visual npm run baseline",
+    "docker:test": "docker compose run --build --rm visual npx playwright test --update-snapshots=none",
+    "docker:bugs": "docker compose run --build --rm -e BASE_URL=https://with-bugs.practicesoftwaretesting.com visual npx playwright test --update-snapshots=none"
   },
   "devDependencies": {
-    "@playwright/test": "1.61.1",
-    "@types/node": "26.0.1",
+    "@playwright/test": "1.63.0",
+    "@types/node": "24.13.3",
     "allure-commandline": "^2.43.0",
-    "allure-playwright": "^2.15.1",
-    "cross-env": "^7.0.3",
-    "typescript": "6.0.3"
+    "allure-playwright": "^3.12.0",
+    "cross-env": "^10.1.0",
+    "typescript": "7.0.2"
   }
 }

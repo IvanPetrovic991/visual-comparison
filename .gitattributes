@@ -1,0 +1,10 @@
+# Keep everything LF in the index, so a Windows clone can't change a byte that
+# ends up inside the Linux container and shifts a pixel.
+* text=auto eol=lf
+
+# Baseline screenshots are not text: never normalise them. Deliberately NOT
+# `binary` — that implies `-diff`, and the side-by-side image diff GitHub shows
+# when a baseline changes is the whole point of reviewing this repo.
+*.png -text
+*.jpg -text
+*.avif -text

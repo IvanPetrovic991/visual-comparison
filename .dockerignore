@@ -3,8 +3,10 @@
 # with the host's, and drag in .git and local reports — bloating the image and
 # breaking reproducibility.
 node_modules
-.git
-.github
+
+# Every dot-file/dir at the root — VCS, CI config, editor and local-tool state,
+# env files that may hold secrets. None of it is needed to run the suite.
+.*
 
 # Generated test / report output
 test-results
@@ -16,8 +18,7 @@ allure-report
 allure-history
 results.json
 
-# Local tooling & docs not needed to run tests
-.claude
+# Docs and logs are not needed to run tests
 docs
 *.log
-.DS_Store
+Thumbs.db

@@ -9,13 +9,50 @@ on:
 permissions:
   contents: read
 
-# Serialise runs per ref: a newer push cancels an in-flight one, so concurrent
-# pushes can't race each other publishing to the gh-pages branch.
+# Serialise runs per ref. On branches/PRs a newer push cancels the in-flight run;
+# on main it never does — cancelling there could kill a run midway through the
+# gh-pages publish and leave the dashboard half-written.
 concurrency:
   group: visual-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
+  # ── Fast, site-independent gate: types + the CI assert script must be sound ──
+  # Runs on every push/PR (including Dependabot's) so a dependency bump gets a
+  # meaningful signal even on a day the third-party demo site is drifting.
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # Nothing here pushes with git; don't leave the token in .git/config.
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check the suite
+        run: npm run typecheck
+
+      - name: Test the CI guard itself
+        # The guard decides whether a run may claim it "caught regressions" — a
+        # bug in it would be invisible, so it has its own tests.
+        run: npm run test:scripts
+
+      - name: Playwright version must match the Docker/CI image tags
+        # A Dependabot bump of @playwright/test alone would leave the container
+        # on the old browser builds — this turns that into a clear failure here.
+        run: npm run check:lockstep
+
   # ── Horizontal scaling: split the suite across N shards, one runner each ──
   visual:
     name: Shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
@@ -24,7 +61,7 @@ jobs:
     # Pinned to the same Playwright version as package.json so rendering in CI
     # is byte-for-byte identical to `npm run docker:*` locally.
     container:
-      image: mcr.microsoft.com/playwright:v1.61.1-noble
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
     # Firefox refuses to launch when $HOME (set to /github/home by the runner)
     # isn't owned by the running user. Point it at the container root's home.
     env:
@@ -36,7 +73,10 @@ jobs:
         shardTotal: [4]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+        with:
+          # Nothing here pushes with git; don't leave the token in .git/config.
+          persist-credentials: false
 
       - name: Install dependencies
         run: npm ci
@@ -47,6 +87,10 @@ jobs:
           BASE_URL: https://practicesoftwaretesting.com
 
       - name: Sanity — CLEAN must match its own baselines (no false positives)
+        # Retries stay ON here (unlike the with-bugs step): the target is a live
+        # third-party sandbox whose catalog anyone can mutate mid-run, so a
+        # single transient mismatch must not turn the pipeline red. A mismatch
+        # that survives the retries does.
         run: npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
         env:
           BASE_URL: https://practicesoftwaretesting.com
@@ -57,15 +101,20 @@ jobs:
       - name: Detect regressions in the WITH-BUGS build (diffs expected)
         id: regression
         continue-on-error: true
-        # --retries=0: every failure here is EXPECTED, so retrying just triples
-        # the cost of the slowest stage (and re-runs deliberately-broken pages).
-        run: npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --retries=0
+        # One retry, not the config's two: every failure here is EXPECTED, so each
+        # retry re-runs the whole (deliberately broken) set. But the buggy build
+        # ships hanging images, and a test that times out proves nothing — the
+        # assert step below would reject the shard. One retry buys that test a
+        # second chance to produce its diff.
+        run: npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --retries=1
         env:
           BASE_URL: https://with-bugs.practicesoftwaretesting.com
 
       - name: Upload this shard's Allure results (real visual-diff failures → dashboard)
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        # Only when the with-bugs stage actually ran: if the clean stages broke
+        # (site drift, outage) there is nothing honest to put on the dashboard.
+        if: ${{ !cancelled() && steps.regression.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v7
         with:
           name: allure-results-${{ matrix.shardIndex }}
           path: allure-results/
@@ -79,7 +128,7 @@ jobs:
 
       - name: Upload this shard's blob report
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: blob-report-${{ matrix.shardIndex }}
           path: blob-report/
@@ -88,25 +137,29 @@ jobs:
   # ── Stitch every shard's blob report into ONE native HTML report (with diffs) ──
   merge:
     name: Merge native report
+    # Always merge what exists — when a shard fails, the report is how you debug it.
     if: ${{ !cancelled() }}
     needs: [visual]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+        with:
+          # Nothing here pushes with git; don't leave the token in .git/config.
+          persist-credentials: false
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Install dependencies
         run: npm ci
 
       - name: Download all shard blob reports
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: all-blob-reports
           pattern: blob-report-*
@@ -116,7 +169,7 @@ jobs:
         run: npm run merge-report
 
       - name: Upload merged Playwright report (includes side-by-side diffs)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: playwright-report/
@@ -125,9 +178,12 @@ jobs:
   # ── Build the Allure dashboard (with history) and publish it to GitHub Pages ──
   allure:
     name: Allure report → GitHub Pages
-    # Publish only from pushes to main — never from PRs (incl. forks), which
-    # must not be able to push to the gh-pages branch.
-    if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    # Publish only from main — never from PRs (incl. forks), which must not be
+    # able to push to the gh-pages branch — and only when EVERY shard passed its
+    # assertion, so the public dashboard never shows a run that broke for the
+    # wrong reason. `workflow_dispatch` is allowed so the dashboard can be
+    # refreshed on demand without an empty commit.
+    if: ${{ needs.visual.result == 'success' && github.ref == 'refs/heads/main' && contains(fromJSON('["push", "workflow_dispatch"]'), github.event_name) }}
     needs: [visual]
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -135,24 +191,28 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+        with:
+          # Nothing here pushes with git; don't leave the token in .git/config.
+          persist-credentials: false
 
       - name: Download Allure results from all shards
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: allure-results
           pattern: allure-results-*
           merge-multiple: true
 
       - name: Load previous Allure history from gh-pages
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         continue-on-error: true
         with:
           ref: gh-pages
           path: gh-pages
+          persist-credentials: false
 
       - name: Generate Allure report (keeping history/trends)
-        uses: simple-elf/allure-report-action@v1.14
+        uses: simple-elf/allure-report-action@v1.15
         with:
           allure_results: allure-results
           gh_pages: gh-pages

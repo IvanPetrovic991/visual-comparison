@@ -3,6 +3,10 @@ services:
     build: .
     image: visual-comparison
     working_dir: /app
+    # Playwright's Docker guidance for Chromium: an init process reaps zombie
+    # browser processes, and host IPC stops Chromium running out of /dev/shm.
+    init: true
+    ipc: host
     environment:
       BASE_URL: ${BASE_URL:-https://practicesoftwaretesting.com}
     volumes:

@@ -11,6 +11,11 @@ updates:
       dev-dependencies:
         patterns:
           - "*"
+    ignore:
+      # @types/node tracks the runtime major (24 — see .nvmrc). Bump it by hand
+      # together with Node itself, not whenever a newer Node line ships types.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
 
   # Keep the third-party GitHub Actions (checkout, upload-artifact,
   # simple-elf/allure-report-action, peaceiris/actions-gh-pages) up to date.
