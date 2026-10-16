@@ -27,10 +27,10 @@
     "docker:bugs": "docker compose run --build --rm -e BASE_URL=https://with-bugs.practicesoftwaretesting.com visual npx playwright test --update-snapshots=none"
   },
   "devDependencies": {
-    "@playwright/test": "1.63.0",
-    "@types/node": "24.13.3",
-    "allure-commandline": "^2.43.0",
-    "allure-playwright": "^3.12.0",
+    "@playwright/test": "1.64.0",
+    "@types/node": "24.19.2",
+    "allure-commandline": "^2.46.1",
+    "allure-playwright": "^3.13.0",
     "cross-env": "^10.1.0",
     "typescript": "7.0.2"
   }
