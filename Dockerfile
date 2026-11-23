@@ -1,8 +1,8 @@
 # Pin to the same Playwright version as package.json so local runs render
 # identically to CI — same browser builds, fonts, and OS libraries. The image
-# also bundles Node 24 (see .nvmrc). scripts/check-playwright-version.mjs keeps
+# also bundles Node 26 (see .nvmrc). scripts/check-playwright-version.mjs keeps
 # this tag, package.json and the CI container image in lockstep.
-FROM mcr.microsoft.com/playwright:v1.63.0-noble
+FROM mcr.microsoft.com/playwright:v1.65.1-noble
 
 WORKDIR /app
 

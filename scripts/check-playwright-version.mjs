@@ -1,9 +1,9 @@
 // The Playwright version is pinned in FOUR places that must move in lockstep:
 //
-//   package.json            "@playwright/test": "1.63.0"
+//   package.json            "@playwright/test": "1.65.1"
 //   package-lock.json       the resolved version of that dependency
-//   Dockerfile              FROM mcr.microsoft.com/playwright:v1.63.0-noble
-//   visual-tests.yml        container image: mcr.microsoft.com/playwright:v1.63.0-noble
+//   Dockerfile              FROM mcr.microsoft.com/playwright:v1.65.1-noble
+//   visual-tests.yml        container image: mcr.microsoft.com/playwright:v1.65.1-noble
 //
 // The container image bundles the exact browser builds for one Playwright
 // version; if the npm package drifts from it, Playwright refuses to launch the

@@ -56,9 +56,13 @@ export default defineConfig({
   //  - `blob`  → mergeable across shards into the native HTML report (best diff UX).
   //  - `allure-playwright` → SECONDARY: trends/history dashboard, published to
   //    GitHub Pages from CI. The native report stays primary for visual diffs.
+  //  - `failures` → CI's only console output: each failure (and each flaky retry)
+  //    as it happens, then a summary, so a red shard's log says which test broke
+  //    and why without downloading an artifact.
   //  - `html`/`list` locally for instant feedback.
   reporter: IS_CI
     ? [
+        ['failures'],
         ['blob'],
         allureReporter,
         // Machine-readable summary so CI can assert every with-bugs failure is a

@@ -110,7 +110,7 @@ Both report on the **with-bugs run**, so the failures are real — and the dashb
 
 ## 🧰 Tech stack
 
-- **[Playwright Test](https://playwright.dev/)** `1.63` — built-in `toHaveScreenshot()` pixel comparison, **no external SaaS** (Percy/Applitools not required).
+- **[Playwright Test](https://playwright.dev/)** `1.65` — built-in `toHaveScreenshot()` pixel comparison, **no external SaaS** (Percy/Applitools not required).
 - **TypeScript** `7.0` (the native compiler) — a fully typed Page Object Model + fixtures.
 - **Cross-browser & responsive** — Chromium, Firefox, WebKit on desktop, plus tablet and mobile viewports.
 - **Docker** — the same pinned Playwright image (same browser builds, fonts and OS libraries) locally and in CI, kept in lockstep with `package.json` by a check script.
@@ -210,14 +210,14 @@ visual-comparison/
 ├── Dockerfile · docker-compose.yml      # deterministic rendering (.dockerignore keeps the image lean)
 ├── playwright.config.ts
 ├── tsconfig.json
-└── .nvmrc                               # Node 24 — the same major CI and the Docker image run
+└── .nvmrc                               # Node 26 — the same major CI and the Docker image run
 ```
 
 ---
 
 ## ⚡ Quick start
 
-> Requires **Node ≥ 22** — [`.nvmrc`](.nvmrc) pins **24** (LTS), the same major CI and the Docker image run.
+> Requires **Node ≥ 22** — [`.nvmrc`](.nvmrc) pins **26** (LTS), the same major CI and the Docker image run.
 
 ```bash
 # 1. Install dependencies + browsers

@@ -12,7 +12,7 @@ updates:
         patterns:
           - "*"
     ignore:
-      # @types/node tracks the runtime major (24 — see .nvmrc). Bump it by hand
+      # @types/node tracks the runtime major (26 — see .nvmrc). Bump it by hand
       # together with Node itself, not whenever a newer Node line ships types.
       - dependency-name: "@types/node"
         update-types: ["version-update:semver-major"]
