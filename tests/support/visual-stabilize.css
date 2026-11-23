@@ -36,12 +36,26 @@
 }
 
 /*
- * Blank the footer build stamp ("v2.4 | Built 2026-08-22 | Angular 20.0.5"):
+ * Blank the footer build stamp ("v2.5 | Built 2026-10-11 | Angular 20.0.5"):
  * it changes on every deploy of the demo site and would invalidate every
  * baseline for no UI reason. `visibility` (not `display`) keeps the layout.
+ * Scoped to the bottom bar with child combinators: the "Learn & Explore"
+ * footer section added in Nov 2026 also uses `.text-muted` for its heading,
+ * and that heading is real, stable UI that belongs in the baseline.
  */
-footer div.text-muted {
+footer > .container-fluid > .text-muted {
   visibility: hidden !important;
+}
+
+/*
+ * Hide the "Enjoyed testing this app? … Explore courses" promo above the home
+ * grid. It is marketing for the site owner's courses, not shop UI, and only
+ * the CLEAN deployment shows it — kept in, every with-bugs home/search diff
+ * would be "the promo is missing" instead of the bugs this suite exists to
+ * catch. `display` (not `visibility`) so neither build reserves its height.
+ */
+[data-test="course-promo"] {
+  display: none !important;
 }
 
 /*

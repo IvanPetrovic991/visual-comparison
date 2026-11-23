@@ -175,7 +175,7 @@ Grow the matrix in [`visual-tests.yml`](.github/workflows/visual-tests.yml) as t
 
 | Concern | Approach |
 | --- | --- |
-| **Flake** | Central `expect.toHaveScreenshot` defaults + a shared [`stylePath`](tests/support/visual-stabilize.css) stylesheet that freezes animations, hides the chat / live-activity widgets and blanks the footer build stamp for the whole suite |
+| **Flake** | Central `expect.toHaveScreenshot` defaults + a shared [`stylePath`](tests/support/visual-stabilize.css) stylesheet that freezes animations, hides the chat / live-activity widgets and the clean-only courses promo, and blanks the footer build stamp for the whole suite |
 | **Selectors** | `testIdAttribute: 'data-test'` → clean `getByTestId('product-name')`, immune to CSS/text refactors |
 | **Baseline churn** | `updateSnapshots: 'none'` in CI (fails on drift); update intentionally with `npm run baseline:changed` (rewrites only what differs) |
 | **Determinism** | `scale: 'css'`, pinned `locale`/`timezone`/`colorScheme`, and the pinned Playwright Docker image |
@@ -284,7 +284,8 @@ Visual tests are only useful if they're stable. Flake is removed in layers:
 
 - **Animations, transitions, smooth-scroll and caret** — frozen via the shared [`visual-stabilize.css`](tests/support/visual-stabilize.css) injected by Playwright at capture time (`stylePath`), plus the matcher's `animations: 'disabled'`.
 - **The live-chat and live-activity widgets** — hidden by that same stylesheet (they stream other visitors' activity, so their state is never deterministic).
-- **The footer build stamp** (`v2.4 | Built 2026-08-22 | …`) — blanked with `visibility: hidden` (layout kept) because it changes on every deploy of the demo site.
+- **The footer build stamp** (`v2.5 | Built 2026-10-11 | …`) — blanked with `visibility: hidden` (layout kept) because it changes on every deploy of the demo site. The rule targets only the bottom bar, so the footer's "Learn & Explore" section (added in Nov 2026, on both builds) stays in the shot.
+- **The "Explore courses" promo** above the home grid — removed at capture time: it advertises the site owner's courses and only the clean build shows it, so leaving it in would make every with-bugs home/search diff say "promo missing" instead of pointing at the actual bugs.
 - **The "By brand" filter** — hidden at capture time: brands are user-mutable through the sandbox's public API (the list went from 12 junk entries to 3 within one afternoon), so it would fail every sidebar screenshot for no UI reason. Categories are seeded and stay in the shot.
 - **Web fonts** — awaited via `document.fonts.ready` so no glyph swaps mid-shot.
 - **Lazy-loaded images** — scrolled into view and waited on until *settled* (loaded **or** errored, bounded), so a deliberately broken image on the with-bugs build can't stall the run.
